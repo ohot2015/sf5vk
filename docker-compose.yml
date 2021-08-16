@@ -1,0 +1,68 @@
+version: '3.8'
+services:
+    database:
+        image: mysql
+        command: --default-authentication-plugin=mysql_native_password
+        restart: always
+        ports: [3306]
+        environment:
+            MYSQL_ROOT_PASSWORD: 123qweasd
+        volumes:
+            - ./docker/mysql/data:/var/lib/mysql
+            - ./docker/mysql/log:/var/log/mysql
+    adminer:
+        image: adminer
+        restart: always
+        ports:
+            - ${adminer_port}:8080
+    nginx:
+        build:
+            context: ./docker/nginx
+        volumes:
+            - ./:/var/www
+            - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf
+            - ./docker/nginx/sites/:/etc/nginx/sites-available
+            - ./docker/nginx/conf.d/:/etc/nginx/conf.d
+            - ./docker/logs:/var/log/nginx
+        depends_on:
+            - php-fpm
+        ports:
+            - "${nginx_port}:80"
+            - "${nginx_ssl_port}:443"
+
+    #    nginx:
+    #        image: nginx:latest
+    #        depends_on:
+    #            - php-fpm
+    #        ports:
+    #            - "${nginx_port}:80"
+    #            - "${nginx_ssl_port}:443"
+    #        volumes:
+    #            - ./docker/hosts:/etc/nginx/conf.d
+    #            - ./:/var/www
+    #            - ./docker/logs:/var/log/nginx
+    #        links:
+    #            - main2
+    #    main2:
+    #        build:
+    #            context: ./docker/main
+    #        container_name: main2
+    #        links:
+    #            - database
+    #        volumes:
+    #            - ./:/var/www
+    #            -
+    php-fpm:
+        build:
+            context: ./docker/php-fpm
+        depends_on:
+            - database
+        environment:
+            - APP_ENV=${APP_ENV}
+            - APP_SECRET=${APP_SECRET}
+            - DATABASE_URL=mysql://${DATABASE_USER}:${DATABASE_PASSWORD}@database:3306/${DATABASE_NAME}?serverVersion=5.7
+        volumes:
+            - ./:/var/www
+        ports:
+            - "${symfony_dev_server}:8000"
+            - "${symfony_dump_server}:9912"
