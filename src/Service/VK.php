@@ -1,14 +1,7 @@
 <?php
 
-/**
- * The PHP class for vk.com API and to support OAuth.
- * @author Vlad Pronsky <vladkens@yandex.ru>
- * @license https://raw.github.com/vladkens/VK/master/LICENSE MIT
- */
 
 namespace App\Service;
-
-use App\Exception\VKException;
 
 class VK
 {
@@ -56,7 +49,7 @@ class VK
      * @param   string $app_id
      * @param   string $api_secret
      * @param   string $access_token
-     * @throws  VKException
+
      */
     public function __construct($app_id, $api_secret, $access_token = null)
     {
@@ -88,7 +81,7 @@ class VK
     /**
      * Set Access Token.
      * @param   string $access_token
-     * @throws  VKException
+
      * @return  void
      */
     public function setAccessToken($access_token)
@@ -134,13 +127,13 @@ class VK
      * Returns access token by code received on authorization link.
      * @param   string $code
      * @param   string $callback_url
-     * @throws  VKException
+
      * @return  array
      */
     public function getAccessToken($code, $callback_url = 'https://api.vk.com/blank.html')
     {
         if (!is_null($this->access_token) && $this->auth) {
-            throw new VKException('Already authorized.');
+            dump('Already authorized.');
         }
 
         $parameters = array(
@@ -154,7 +147,7 @@ class VK
             $this->createUrl(self::ACCESS_TOKEN_URL, $parameters)), true);
 
         if (isset($rs['error'])) {
-            throw new VKException($rs['error'] .
+            dump($rs['error'] .
                 (!isset($rs['error_description']) ?: ': ' . $rs['error_description']));
         } else {
             $this->auth = true;

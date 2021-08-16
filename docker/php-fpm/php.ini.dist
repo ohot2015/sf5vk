@@ -1,0 +1,21 @@
+memory_limit = 4096M
+allow_url_fopen = true
+upload_max_filesize = 40M
+post_max_size = 40M
+
+
+;errror
+error_reporting = E_ALL
+display_errors = On
+display_startup_errors = On
+log_errors = On
+log_errors_max_len = 1024
+ignore_repeated_errors = Off
+ignore_repeated_source = Off
+report_memleaks = Off
+html_errors = On
+error_log = "/var/www/docker/logs/phperror.log"
+;error
+
+
+;
