@@ -73,12 +73,11 @@ class AddFriendInGroupCommand extends Command
             ->select('i')
             ->where('i.inviter = :myUser')
             ->andWhere('i.type = \'groupUsers\'')
-            ->setParameters(['myUser'=> $VK_GROUP_MY])
+            ->setParameters(['myUser'=>  $users[0]['u_id']])
             ->getQuery()
             ->getArrayResult();
 
         $oldInvaitedUserIds = array_column($invatedUsers,'invitation');
-
         $idsMyGroup = $rs['response']['items'];
 
 //filtred users
@@ -116,10 +115,13 @@ class AddFriendInGroupCommand extends Command
 
             if (!empty($invatedUsers[$iter - 1]['error'])) {
                 $iu->setErrorCode($invatedUsers[$iter - 1]['error']['error_code']);
-                $iu->setErrorTxt($invatedUsers[$iter - 1]['error']['error_text']);
+                $iu->setErrorTxt($invatedUsers[$iter - 1]['error']['error_msg']);
                 if ($invatedUsers[$iter - 1]['error']['error_code'] == 14) {
                     $this->em->persist($iu);
                     break;
+                }
+                if ($invatedUsers[$iter - 1]['error']['error_code'] == 15) {
+                    $iter--;
                 }
             }
 
@@ -128,7 +130,7 @@ class AddFriendInGroupCommand extends Command
                 break;
             }
             $this->em->persist($iu);
-            sleep(rand(3,19));
+            sleep(rand(3,12));
         }
         $this->em->flush();
         $io->success('You have a new command! Now make it your own! Pass --help to see your options.');
