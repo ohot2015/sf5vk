@@ -1,7 +1,10 @@
 <?php
 
 namespace App\Command;
+use App\Entity\InvatedUsers;
 use App\Service\VK;
+use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -14,7 +17,12 @@ class AddFriendCommand extends Command
 {
     protected static $defaultName = 'addFriend';
     protected static $defaultDescription = 'Add a short description for your command';
-
+    private $em;
+    public function __construct(EntityManagerInterface $em)
+    {
+        parent::__construct();
+        $this->em = $em;
+    }
     protected function configure(): void
     {
         $this
@@ -33,9 +41,9 @@ class AddFriendCommand extends Command
         }
 
         /** @var Container container */
-        $this->container = $this->getApplication()->getKernel()->getContainer();
+        $container = $this->getApplication()->getKernel()->getContainer();
         /** @var VK $vk */
-        $vk = $this->container->get('vk');
+        $vk = $container->get('vk');
         $vk->setApiVersion(5.131);
 
         $VK_GROUP_BIG = 179635329;
@@ -61,12 +69,15 @@ class AddFriendCommand extends Command
             'v' => '5.131'
         ], 'array', 'POST');
 
-
-        $json = file_get_contents('./invaitedUserIds.json');
-        if (!empty($json)) {
-            $oldInvaitedUserIds = json_decode($json,true);
-        }
-
+        $repo = $this->em->getRepository(InvatedUsers::class);
+        $invatedUsers = $repo->createQueryBuilder('i')
+            ->select('i')
+            ->where('i.inviter = :myUser')
+            ->andWhere('i.type = \'myFriend\'')
+            ->setParameters(['myUser'=> $users[0]['u_id']])
+            ->getQuery()
+            ->getArrayResult();
+        $invatedUsers = array_column($invatedUsers,'invitation');
         $validUsers = [];
         foreach ($rs['response'] as $user) {
             if (!empty($user['deactivated'])) {
@@ -75,13 +86,14 @@ class AddFriendCommand extends Command
             if ($user['online'] == 0) {
                 continue;
             }
-            if (in_array($user['id'],$oldInvaitedUserIds)) {
+
+            if (in_array($user['id'],$invatedUsers)) {
                 continue;
             }
             $validUsers[] = $user;
         }
+
         $iter = 0;
-        $invaitedUserIds = [];
         $results = [];
         foreach ($validUsers as $user) {
             $results[] = $vk->api('friends.add', [
@@ -90,28 +102,29 @@ class AddFriendCommand extends Command
                 'v' => '5.131'
             ], 'array', 'POST');
 
-            $invatedUserIds[] = $user['id'];
+            $iu = new InvatedUsers();
+            $iu->setInviter($users[0]['u_id']);
+            $iu->setInvitation($user['id']);
+            $iu->setType('myFriend');
             $iter++;
-            sleep(rand(3,19));
-            if (!empty($rs['error'])) {
-                break;
+
+            if (!empty($results[$iter - 1]['error'])) {
+                $iu->setErrorCode($results[$iter - 1]['error']['error_code']);
+                $iu->setErrorTxt($results[$iter - 1]['error']['error_msg']);
+                if ($results[$iter - 1]['error']['error_code'] == 14) {
+                    $this->em->persist($iu);
+                    break;
+                }
             }
+
             if ($iter >= 3 ) {
+                $this->em->persist($iu);
                 break;
             }
+            $this->em->persist($iu);
+            sleep(rand(3,19));
         }
-
-        file_put_contents('./invaitedUserIds.json', json_encode(array_merge($oldInvaitedUserIds, $invatedUserIds)));
-
-        echo '<pre>';
-        print_r($results);
-        echo '</pre>';
-        echo PHP_EOL;
-
-
-
-
-
+        $this->em->flush();
         $io->success('You have a new command! Now make it your own! Pass --help to see your options.');
 
         return Command::SUCCESS;
