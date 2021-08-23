@@ -51,7 +51,7 @@ class VK
      * @param   string $access_token
 
      */
-    public function __construct($app_id, $api_secret, $access_token = null)
+    public function __construct($app_id, $api_secret, $access_token)
     {
         $this->app_id = $app_id;
         $this->api_secret = $api_secret;
@@ -88,7 +88,10 @@ class VK
     {
         $this->access_token = $access_token;
     }
-
+    public function getAddedAccessToken()
+    {
+        return $this->access_token;
+    }
     /**
      * Returns base API url.
      * @param   string $method

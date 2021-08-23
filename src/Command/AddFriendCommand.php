@@ -45,25 +45,24 @@ class AddFriendCommand extends Command
         /** @var VK $vk */
         $vk = $container->get('vk');
         $vk->setApiVersion(5.131);
-
         $VK_GROUP_BIG = 179635329;
         $VK_GROUP_MY = 205719869;
 
         $users = [
-            ['u_id' => '523544221', 'token' => 'cd3369824bc184f658b0c8d6adfa07272feee21dfb0d92d4cddba92310dfab7363c6ef7045c6efb97fb58'],
+            ['u_id' => '523544221'],
         ];
 
-        $rs = $vk->api('groups.getMembers', [
+        $rsGetGroups = $vk->api('groups.getMembers', [
             'group_id' => $VK_GROUP_BIG,
-            'access_token' => $users[0]['token'],
+            'access_token' => $vk->getAddedAccessToken(),
             'count'=> 1000,
         ], 'array', 'POST');
 
-        $ids = $rs['response']['items'];
+        $ids = $rsGetGroups['response']['items'];
 
         $rs = $vk->api('users.get', [
             'user_ids' => substr(implode(',',$ids),0,-1),
-            'access_token' => $users[0]['token'],
+            'access_token' => $vk->getAddedAccessToken(),
             'count'=> 1000,
             'fields' => 'online,blacklisted_by_me,bdate',
             'v' => '5.131'
@@ -79,26 +78,40 @@ class AddFriendCommand extends Command
             ->getArrayResult();
         $invatedUsers = array_column($invatedUsers,'invitation');
         $validUsers = [];
+        shuffle($rs['response']);
+        $qwe=[1=>0,2=>0,3=>0,4=>0,5=>0];
         foreach ($rs['response'] as $user) {
             if (!empty($user['deactivated'])) {
+                $qwe[1]++;
+                continue;
+            }
+            if (!empty($user['blacklisted_by_me'])) {
+                $qwe[2]++;
                 continue;
             }
             if ($user['online'] == 0) {
+                $qwe[3]++;
                 continue;
             }
-
-            if (in_array($user['id'],$invatedUsers)) {
+//            if (in_array($user['id'], $ids)){
+//                $qwe[3]++;
+//                continue;
+//            }
+            if (in_array($user['id'], $invatedUsers)) {
+                $qwe[4]++;
                 continue;
             }
+            $qwe[5]++;
             $validUsers[] = $user;
         }
+        //dump($qwe);exit;
 
         $iter = 0;
         $results = [];
         foreach ($validUsers as $user) {
             $results[] = $vk->api('friends.add', [
                 'user_id' => $user['id'],
-                'access_token' => $users[0]['token'],
+                'access_token' => $vk->getAddedAccessToken(),
                 'v' => '5.131'
             ], 'array', 'POST');
 
