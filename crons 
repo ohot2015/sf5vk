@@ -1,0 +1,4 @@
+48 0-2,7-9,17-23/2 * * * cd /var/www/vksf5 && docker-compose exec -T php-fpm symfony console addFriend >> /var/www/vk/cron.log 2>&1
+12 0-2,7-9,17-23/2 * * * cd /var/www/vksf5 && docker-compose exec -T php-fpm symfony console addFriendGroup  >>  /var/www/vk/cron.log>
+10 8 * * * cd /var/www/vksf5 && docker-compose exec -T php-fpm symfony console stillPosts >> /var/www/vk/cron.log 2>&1
+
