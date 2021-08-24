@@ -67,7 +67,6 @@ class AddFriendInGroupCommand extends Command
             'v' => '5.131'
         ], 'array', 'POST');
 
-
         $repo = $this->em->getRepository(InvatedUsers::class);
         $invatedUsers = $repo->createQueryBuilder('i')
             ->select('i')
@@ -81,14 +80,15 @@ class AddFriendInGroupCommand extends Command
         $idsMyGroup = $rs['response']['items'];
 
 //filtred users
+        $i =0 ;
         foreach ($ids as $key => $id) {
             foreach ($idsMyGroup as $mg) {
                 if ($id == $mg) {
+
                     unset($ids[$key]);
                 }
             }
         }
-
         foreach ($ids as $key => $id) {
             foreach ($oldInvaitedUserIds as $mg) {
                 if ($id == $mg) {
@@ -133,7 +133,7 @@ class AddFriendInGroupCommand extends Command
             sleep(rand(3,12));
         }
         $this->em->flush();
-        $io->success('success '. count($ids));
+        $io->success('success group  '. count($ids));
 
         return Command::SUCCESS;
     }
