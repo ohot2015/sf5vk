@@ -55,7 +55,7 @@ class StillPostsCommand extends Command
         $rsWall = $vk->api('wall.get', [
             'owner_id' => $VK_GROUP_BIG,
             'access_token' => $vk->getAddedAccessToken(),
-            'count' => 4,
+            'count' => 18,
 
         ], 'array', 'POST');
         $posts =[];
