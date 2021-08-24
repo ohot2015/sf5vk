@@ -138,7 +138,7 @@ class AddFriendCommand extends Command
             sleep(rand(3,19));
         }
         $this->em->flush();
-        $io->success('You have a new command! Now make it your own! Pass --help to see your options.');
+        $io->success('success '. count($validUsers));
 
         return Command::SUCCESS;
     }

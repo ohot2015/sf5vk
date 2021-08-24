@@ -133,7 +133,7 @@ class AddFriendInGroupCommand extends Command
             sleep(rand(3,12));
         }
         $this->em->flush();
-        $io->success('You have a new command! Now make it your own! Pass --help to see your options.');
+        $io->success('success '. count($ids));
 
         return Command::SUCCESS;
     }
