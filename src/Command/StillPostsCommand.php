@@ -47,34 +47,42 @@ class StillPostsCommand extends Command
         $vk->setApiVersion(5.131);
         $VK_GROUP_BIG = '-201078167';//179635329;
         $VK_GROUP_MY = '-205719869';
+        $groups =[
+            '-140095821',
+            '-202492339',
+            '-174596804',
+            '-188972831',
+            '-201078167'
+        ];
 
         $users = [
             ['u_id' => '523544221'],
         ];
 
-        $rsWall = $vk->api('wall.get', [
-            'owner_id' => $VK_GROUP_BIG,
-            'access_token' => $vk->getAddedAccessToken(),
-            'count' => 18,
-
-        ], 'array', 'POST');
-        $posts =[];
-        foreach($rsWall['response']['items'] as $post) {
-            $rsPost = $vk->api('wall.post', [
-                'owner_id' => $VK_GROUP_MY,
-                'from_group' => 1,
-                'message'=> $post['text'] .'  '. PHP_EOL . PHP_EOL . 'от пользователя: '. PHP_EOL . 'https://vk.com/id'.$post['from_id'],
-                'publish_date' => time() + (60 * 60 * 24),
-                'copyright' => 'http://vk.com/club' . '201078167',
+        foreach ($groups as $group) {
+            $rsWall = $vk->api('wall.get', [
+                'owner_id' => $group,
                 'access_token' => $vk->getAddedAccessToken(),
-                'count' => 10,
+                'count' => 5,
+
             ], 'array', 'POST');
-            $rsPost[] = $rsPost['response'];
-            sleep(rand(1,18));
+
+            foreach($rsWall['response']['items'] as $post) {
+                $rsPost = $vk->api('wall.post', [
+                    'owner_id' => $VK_GROUP_MY,
+                    'from_group' => 1,
+                    'message'=> $post['text'] .'  '. PHP_EOL . PHP_EOL . 'от пользователя: '. PHP_EOL . '@id'.$post['from_id'],
+                    'publish_date' => time() + (60 * 60 * 24),
+                    'copyright' => 'http://vk.com/club' . '201078167',
+                    'access_token' => $vk->getAddedAccessToken(),
+                    'count' => 10,
+                ], 'array', 'POST');
+                $rsPost[] = $rsPost['response'];
+                sleep(rand(1,18));
+            }
         }
 
-
-        $io->success('success '. count([]));
+        $io->success('success');
 
         return Command::SUCCESS;
     }
