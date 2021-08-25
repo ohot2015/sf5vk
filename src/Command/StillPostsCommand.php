@@ -73,7 +73,7 @@ class StillPostsCommand extends Command
                     'from_group' => 1,
                     'message'=> $post['text'] .'  '. PHP_EOL . PHP_EOL . 'от пользователя: '. PHP_EOL . '@id'.$post['from_id'],
                     'publish_date' => time() + (60 * 60 * 24),
-                    'copyright' => 'http://vk.com/club' . '201078167',
+                    'copyright' => '@vk.com/club' . $group,
                     'access_token' => $vk->getAddedAccessToken(),
                     'count' => 10,
                 ], 'array', 'POST');
