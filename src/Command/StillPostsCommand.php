@@ -2,6 +2,7 @@
 
 namespace App\Command;
 use App\Entity\InvatedUsers;
+use App\Entity\StillPosts;
 use App\Service\VK;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
@@ -58,31 +59,59 @@ class StillPostsCommand extends Command
         $users = [
             ['u_id' => '523544221'],
         ];
-
+        $repo = $this->em->getRepository(StillPosts::class);
+        $resp=[];
+        $iter=0;
         foreach ($groups as $group) {
             $rsWall = $vk->api('wall.get', [
                 'owner_id' => $group,
                 'access_token' => $vk->getAddedAccessToken(),
-                'count' => 5,
-
+                'count' => 10,
             ], 'array', 'POST');
+            if (empty($rsWall['response'])) {
+                continue;
+            }
 
             foreach($rsWall['response']['items'] as $post) {
+                $posted = $repo->findBy(['groupId'=> $group, 'postId' => $post['id']]);
+                if (!empty($posted)) {
+                    continue;
+                }
+                if (strval($post['from_id'])[0]  === '-' ){
+                    continue;
+                }
+                if ( ($post['date'] + (60 * 60 * 24)) < time()) {
+                    continue;
+                }
+                $iter++;
                 $rsPost = $vk->api('wall.post', [
                     'owner_id' => $VK_GROUP_MY,
                     'from_group' => 1,
                     'message'=> $post['text'] .'  '. PHP_EOL . PHP_EOL . 'от пользователя: '. PHP_EOL . '@id'.$post['from_id'],
-                    'publish_date' => time() + (60 * 60 * 24),
+                    'publish_date' => time() + (60 * 60 * 24 + 60 * 30 * $iter),
                     'copyright' => '@vk.com/club' . $group,
                     'access_token' => $vk->getAddedAccessToken(),
                     'count' => 10,
                 ], 'array', 'POST');
-                $rsPost[] = $rsPost['response'];
+
+                $stillPosts = new StillPosts();
+                $stillPosts->setBotId($users[0]['u_id']);
+                $stillPosts->setDate($post['date']);
+                $stillPosts->setGroupId($group);
+                $stillPosts->setPostId($post['id']);
+                $stillPosts->setText($post['text']);
+                $stillPosts->setUserId($post['from_id']);
+                if (!empty($rsPost['error'])) {
+                    $stillPosts->setError($rsPost['error']['error_code']);
+                    $stillPosts->setErrorTxt($rsPost['error']['error_msg']);
+                }
+                $this->em->persist($stillPosts);
+                $resp[] = $rsPost;
                 sleep(rand(1,18));
             }
         }
-
-        $io->success('success');
+        $this->em->flush();
+        $io->success('success'. $iter);
 
         return Command::SUCCESS;
     }
