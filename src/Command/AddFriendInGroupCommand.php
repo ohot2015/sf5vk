@@ -46,6 +46,7 @@ class AddFriendInGroupCommand extends Command
         $vk = $container->get('vk');
         $vk->setApiVersion(5.131);
         $VK_GROUP_MY =  $container->getParameter('myGroups');
+        $VK_GROUP_MY = substr($VK_GROUP_MY ,1);
         $users = [
             ['u_id' => $container->getParameter('mypage')],
         ];
@@ -82,7 +83,6 @@ class AddFriendInGroupCommand extends Command
         foreach ($ids as $key => $id) {
             foreach ($idsMyGroup as $mg) {
                 if ($id == $mg) {
-
                     unset($ids[$key]);
                 }
             }

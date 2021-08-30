@@ -45,15 +45,16 @@ class AddFriendCommand extends Command
         /** @var VK $vk */
         $vk = $container->get('vk');
         $vk->setApiVersion(5.131);
-        $groups = $container->getParameter('myGroups');
-        $VK_GROUP_BIG = $groups[rand(0, count($groups))];
+        $groups = $container->getParameter('groupsStillPosts');
+        $groups = explode(',',$groups);
+        $VK_GROUP_BIG = $groups[rand(0, count($groups) - 1)];
 
         $users = [
             ['u_id' => $container->getParameter('mypage')],
         ];
 
         $rsGetGroups = $vk->api('groups.getMembers', [
-            'group_id' => $VK_GROUP_BIG,
+            'group_id' => substr($VK_GROUP_BIG,1),
             'access_token' => $vk->getAddedAccessToken(),
             'count'=> 1000,
         ], 'array', 'POST');
@@ -138,7 +139,7 @@ class AddFriendCommand extends Command
             sleep(rand(3,19));
         }
         $this->em->flush();
-        $io->success('success '. count($validUsers));
+        $io->success('success '. $iter);
 
         return Command::SUCCESS;
     }
