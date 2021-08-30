@@ -31,7 +31,61 @@ class StillPostsCommand extends Command
             ->addOption('option1', null, InputOption::VALUE_NONE, 'Option description')
         ;
     }
+    private function filterPost(array $post):bool
+    {
+        if (strval($post['from_id'])[0]  === '-' ){
+            return false;
+        }
+        if ( ($post['date'] + (60 * 60 * 24)) < time()) {
+            return false;
+        }
+        if (empty($post['text'])) {
+            return false;
+        }
 
+        $signatures = [
+            'мп',
+            'МП',
+            '$',
+            'деньги',
+            'материальную',
+            'поддержку',
+            'подержку',
+            'подершку',
+            'поддершку',
+            'подержу',
+            'поддержу',
+            'вознаграждение',
+            'вознагрождение',
+            'награда',
+            'бабки',
+            'заплачу',
+            'билеты',
+            'переезд',
+            "денег",
+            "плата",
+            "плач",
+            "обеспеч",
+            "содерж",
+            "групп",
+            "паблик",
+            "сайт",
+            "сообщество",
+            "канал",
+            "купи",
+            "купай",
+            "прода",
+            "клуб",
+            "http"
+        ];
+
+        foreach ($signatures as $s) {
+            if (strpos(strtolower($post['text']), $s) !== false) {
+                return false;
+            }
+        }
+        return true;
+    }
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
@@ -63,11 +117,14 @@ class StillPostsCommand extends Command
         $repo = $this->em->getRepository(StillPosts::class);
         $resp=[];
         $iter=0;
+        $publicUsers = [];
         foreach ($groups as $group) {
             $rsWall = $vk->api('wall.get', [
                 'owner_id' => $group,
                 'access_token' => $vk->getAddedAccessToken(),
                 'count' => 10,
+                'extended' =>1,
+                'fields'=> 'name'
             ], 'array', 'POST');
             if (empty($rsWall['response'])) {
                 continue;
@@ -78,18 +135,38 @@ class StillPostsCommand extends Command
                 if (!empty($posted)) {
                     continue;
                 }
-                if (strval($post['from_id'])[0]  === '-' ){
+                if (!$this->filterPost($post)) {
                     continue;
                 }
-                if ( ($post['date'] + (60 * 60 * 24)) < time()) {
+                if (in_array($post['from_id'], $publicUsers)) {
                     continue;
                 }
+                $publicUsers[] = $post['from_id'];
+                $profileUser = [];
+                foreach($rsWall['response']['profiles'] as $profile){
+                    if ($profile['id'] === $post['from_id']) {
+                        $profileUser = $profile;
+                    }
+                }
+                if (empty($profileUser)) {
+                    continue;
+                }
+
                 $iter++;
                 $rsPost = $vk->api('wall.post', [
                     'owner_id' => $VK_GROUP_MY,
                     'from_group' => 1,
-                    'message'=> $post['text'] .'  '. PHP_EOL . PHP_EOL . 'от пользователя: '. PHP_EOL . '@id'.$post['from_id'],
-                    'publish_date' => time() + (60 * 60 * 24 + 60 * 30 * $iter),
+                    'message'=> sprintf('%s %s%sот пользователя: %s[id%s|%s %s]',
+                        $post['text'],
+                        PHP_EOL,
+                        PHP_EOL,
+                        PHP_EOL,
+                        $post['from_id'],
+                        $profileUser['first_name'],
+                        $profileUser['last_name']
+                    ),
+                //    'message'=> $post['text'] .'  '. PHP_EOL . PHP_EOL . 'от пользователя: '. PHP_EOL . '@id'.$post['from_id'],
+                    'publish_date' => time() + (60 * 30 * $iter),
                     'copyright' => '@vk.com/club' . $group,
                     'access_token' => $vk->getAddedAccessToken(),
                     'count' => 10,
