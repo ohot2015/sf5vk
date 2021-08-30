@@ -76,7 +76,12 @@ class StillPostsCommand extends Command
             "купай",
             "прода",
             "клуб",
-            "http"
+            "http",
+            "регистри",
+            "регестри",
+            "заходи",
+            "приобрет",
+            "приобрит"
         ];
 
         foreach ($signatures as $s) {
