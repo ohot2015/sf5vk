@@ -80,6 +80,7 @@ class StillPostsCommand extends Command
             "регистри",
             "регестри",
             "заходи",
+            "переходи",
             "приобрет",
             "приобрит"
         ];
