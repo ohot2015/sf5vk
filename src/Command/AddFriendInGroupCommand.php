@@ -45,11 +45,9 @@ class AddFriendInGroupCommand extends Command
         /** @var VK $vk */
         $vk = $container->get('vk');
         $vk->setApiVersion(5.131);
-        $VK_GROUP_BIG = 179635329;
-        $VK_GROUP_MY = 205719869;
-
+        $VK_GROUP_MY =  $container->getParameter('myGroups');
         $users = [
-            ['u_id' => '523544221'],
+            ['u_id' => $container->getParameter('mypage')],
         ];
 
         $rs = $vk->api('friends.get', [

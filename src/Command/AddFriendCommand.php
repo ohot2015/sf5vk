@@ -45,11 +45,11 @@ class AddFriendCommand extends Command
         /** @var VK $vk */
         $vk = $container->get('vk');
         $vk->setApiVersion(5.131);
-        $VK_GROUP_BIG = 179635329;
-        $VK_GROUP_MY = 205719869;
+        $groups = $container->getParameter('myGroups');
+        $VK_GROUP_BIG = $groups[rand(0, count($groups))];
 
         $users = [
-            ['u_id' => '523544221'],
+            ['u_id' => $container->getParameter('mypage')],
         ];
 
         $rsGetGroups = $vk->api('groups.getMembers', [

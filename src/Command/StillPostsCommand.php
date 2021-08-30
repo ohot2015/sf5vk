@@ -97,23 +97,16 @@ class StillPostsCommand extends Command
 
         /** @var Container container */
         $container = $this->getApplication()->getKernel()->getContainer();
+
         /** @var VK $vk */
         $vk = $container->get('vk');
         $vk->setApiVersion(5.131);
-        $VK_GROUP_BIG = '-201078167';//179635329;
-        $VK_GROUP_MY = '-205719869';
-        $groups =[
-            '-179635329',
-            '-140095821',
-            '-202492339',
-            '-174596804',
-            '-188972831',
-            '-201078167',
+        $VK_GROUP_MY = $container->getParameter('myGroups');
+        $groups = explode(',',$container->getParameter('groupsStillPosts'));
+        $users = [
+            ['u_id' => $container->getParameter('mypage')],
         ];
 
-        $users = [
-            ['u_id' => '523544221'],
-        ];
         $repo = $this->em->getRepository(StillPosts::class);
         $resp=[];
         $iter=0;
