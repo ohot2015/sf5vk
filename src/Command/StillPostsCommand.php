@@ -63,6 +63,7 @@ class StillPostsCommand extends Command
             'билеты',
             'переезд',
             "денег",
+            "деньг",
             "плата",
             "плач",
             "обеспеч",
