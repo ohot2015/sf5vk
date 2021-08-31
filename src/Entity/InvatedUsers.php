@@ -26,6 +26,7 @@ class InvatedUsers
      * @ORM\Column(type="integer")
      */
     private $invitation;
+    
 
     /**
      * @ORM\Column(type="datetime")
@@ -46,6 +47,11 @@ class InvatedUsers
      * @ORM\Column(type="string", length=255)
      */
     private $type;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $fromGroup;
 
     public function __construct() {
         $this->date = new \DateTime();
@@ -124,6 +130,18 @@ class InvatedUsers
     public function setType(string $type): self
     {
         $this->type = $type;
+
+        return $this;
+    }
+
+    public function getFromGroup(): ?string
+    {
+        return $this->fromGroup;
+    }
+
+    public function setFromGroup(?string $fromGroup): self
+    {
+        $this->fromGroup = $fromGroup;
 
         return $this;
     }

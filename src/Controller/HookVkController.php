@@ -17,10 +17,11 @@ class HookVkController extends AbstractController
 
 
         $rqVkCode = 1;
+
         // приветствие
         switch ($rqVkCode) {
             case 1: {
-                // да
+
                 // проверить есть ли анкета
                     // да
                     // спросить не хочет ли обновить данные

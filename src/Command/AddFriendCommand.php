@@ -120,6 +120,7 @@ class AddFriendCommand extends Command
             $iu->setInviter($users[0]['u_id']);
             $iu->setInvitation($user['id']);
             $iu->setType('myFriend');
+            $iu->setFromGroup(substr($VK_GROUP_BIG,1));
             $iter++;
 
             if (!empty($results[$iter - 1]['error'])) {
