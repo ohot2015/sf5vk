@@ -86,6 +86,9 @@ class StillPostsCommand extends Command
             "женщин",
             "девушк",
             "девочк",
+            "жигало",
+            "жиrало",
+            "проститу",
             "приобрит"
         ];
 
