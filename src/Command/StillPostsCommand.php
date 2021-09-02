@@ -31,11 +31,11 @@ class StillPostsCommand extends Command
             ->addOption('option1', null, InputOption::VALUE_NONE, 'Option description')
         ;
     }
-    private function filterPost(array $post):bool
+    private function filterPost(array $post)
     {
-        if (strval($post['from_id'])[0]  === '-' ){
-            return 'groupPoster';
-        }
+//        if (strval($post['from_id'])[0]  === '-' ){
+//            return 'groupPoster';
+//        }
         if ( ($post['date'] + (60 * 60 * 24)) < time()) {
             return 'old_date';
         }
@@ -44,52 +44,56 @@ class StillPostsCommand extends Command
         }
 
         $signatures = [
-            'мп',
-            'МП',
-            '$',
-            'деньги',
-            'материальную',
-            'поддержку',
-            'подержку',
-            'подершку',
-            'поддершку',
-            'подержу',
-            'поддержу',
-            'вознаграждение',
-            'вознагрождение',
-            'награда',
-            'бабки',
-            'заплачу',
-            'билет',
-            'переезд',
+            "http",
+            "групп",
+            "девочк",
+            "девушк",
             "денег",
             "деньг",
+            "женщин",
+            "жиrало",
+            "жигало",
+            "заходи",
+            "канал",
+            "клуб",
+            "купай",
+            "купи",
+            "магазин",
+            "обеспеч",
+            "оценкапопы",
+            "оценкачлена",
+            "паблик",
+            "переходи",
             "плата",
             "плач",
-            "обеспеч",
-            "содерж",
-            "групп",
-            "паблик",
-            "сайт",
-            "сообщество",
-            "канал",
-            "купи",
-            "купай",
-            "прода",
-            "клуб",
-            "http",
-            "регистри",
-            "регестри",
-            "заходи",
-            "переходи",
             "приобрет",
-            "женщин",
-            "девушк",
-            "девочк",
-            "жигало",
-            "жиrало",
+            "приобрит",
+            "прода",
             "проститу",
-            "приобрит"
+            "работа",
+            "регестри",
+            "регистри",
+            "сайт",
+            "содерж",
+            "сообщество",
+            '$',
+            'МП',
+            'бабки',
+            'билет',
+            'вознаграждение',
+            'вознагрождение',
+            'деньги',
+            'заплачу',
+            'материальную',
+            'награда',
+            'переезд',
+            'поддержку',
+            'поддержу',
+            'поддершку',
+            'подержку',
+            'подержу',
+            'подершку',
+            'мп'
         ];
 
         foreach ($signatures as $s) {
@@ -145,7 +149,9 @@ class StillPostsCommand extends Command
                 if (in_array($post['from_id'], $publicUsers)) {
                     continue;
                 }
-                if ($signature = $this->filterPost($post)) {
+                $signature = $this->filterPost($post);
+
+                if ($signature !== false) {
                     $stillPosts = new StillPosts();
                     $stillPosts->setBotId($users[0]['u_id']);
                     $stillPosts->setDate($post['date']);
@@ -156,9 +162,9 @@ class StillPostsCommand extends Command
                     $stillPosts->setError(9999);
                     $stillPosts->setErrorTxt($signature);
                     $this->em->persist($stillPosts);
-
                     continue;
                 }
+
                 $publicUsers[] = $post['from_id'];
                 $profileUser = [];
                 foreach($rsWall['response']['profiles'] as $profile){
