@@ -15,6 +15,7 @@ class HookVkController extends AbstractController
      */
     public function index(Request $request, VK $vk)//: Response
     {
+        return new Response('ok');
         $vk->setApiVersion(5.131);
         $VK_GROUP_MY = $this->getParameter('myGroups');
         $vk->setAccessToken($this->getParameter('group_access_token'));
@@ -29,10 +30,76 @@ class HookVkController extends AbstractController
                 //'peer_id' =>$user,
                 'message'=> $text,
                 'access_token' => $vk->getAddedAccessToken(),
+//                'keyboard' => '{
+//  "one_time": true,
+//  "buttons": [
+//    [
+//      {
+//        "action": {
+//          "type": "location",
+//          "payload": "{\"button\": \"1\"}"
+//        }
+//      }
+//    ],
+//    [
+//      {
+//        "action": {
+//          "type": "open_app",
+//          "app_id": 6232540,
+//          "owner_id": -157525928,
+//          "hash": "123",
+//          "label": "LiveWidget"
+//        }
+//      }
+//    ],
+//    [
+//      {
+//        "action": {
+//          "type": "vkpay",
+//          "hash": "action=transfer-to-group&group_id=181108510&aid=10"
+//        }
+//      }
+//    ],
+//    [
+//      {
+//        "action": {
+//          "type": "text",
+//          "payload": "{\"button\": \"1\"}",
+//          "label": "Red"
+//        },
+//        "color": "negative"
+//      },
+//      {
+//        "action": {
+//          "type": "text",
+//          "payload": "{\"button\": \"2\"}",
+//          "label": "Green"
+//        },
+//        "color": "positive"
+//      },
+//      {
+//        "action": {
+//          "type": "text",
+//          "payload": "{\"button\": \"2\"}",
+//          "label": "Blue"
+//        },
+//        "color": "primary"
+//      },
+//      {
+//        "action": {
+//          "type": "text",
+//          "payload": "{\"button\": \"2\"}",
+//          "label": "White"
+//        },
+//        "color": "secondary"
+//      }
+//    ]
+//  ]
+//}',
                 'random_id' => rand(0,99999)
             ], 'array', 'POST');
 
-            dump($rsPost,$vk->getAddedAccessToken(),$this->getParameter('group_access_token'));
+            dump($rsPost,$data);
         }
 
         return new Response('ok');
