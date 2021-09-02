@@ -7,6 +7,7 @@ parameters:
     app_id: '%env(resolve:vk_app_id)%'
     app_secret: '%env(resolve:vk_api_secret)%'
     app_token: '%env(resolve:vk_access_token)%'
+    group_access_token: '%env(resolve:vk_group_access_token)%'
     groupsStillPosts: '%env(resolve:groupsStillPosts)%'
     myGroups: '%env(resolve:myGroups)%'
     mypage: '%env(resolve:mypage)%'

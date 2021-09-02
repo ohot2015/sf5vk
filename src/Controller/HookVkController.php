@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Service\VK;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -10,47 +11,34 @@ use Symfony\Component\Routing\Annotation\Route;
 class HookVkController extends AbstractController
 {
     /**
-     * @Route("/hook/vk", name="hook_vk")
+     * @Route("/", name="hook_vk")
      */
-    public function index(Request $request): Response
+    public function index(Request $request, VK $vk)//: Response
     {
+        $vk->setApiVersion(5.131);
+        $VK_GROUP_MY = $this->getParameter('myGroups');
+        $vk->setAccessToken($this->getParameter('group_access_token'));
 
+        $data = json_decode($request->getContent(),true);
 
-        $rqVkCode = 1;
+        if ($data['type'] ==='message_new') {
+            $user = $data['object']['message']['from_id'];
+            $text = $data['object']['message']['text'];
+            $rsPost = $vk->api('messages.send', [
+                'user_id' => $user,
+                //'peer_id' =>$user,
+                'message'=> $text,
+                'access_token' => $vk->getAddedAccessToken(),
+                'random_id' => rand(0,99999)
+            ], 'array', 'POST');
 
-        // приветствие
-        switch ($rqVkCode) {
-            case 1: {
-
-                // проверить есть ли анкета
-                    // да
-                    // спросить не хочет ли обновить данные
-                        // да
-                        //  перейти к обновлению
-                        // нет
-                        // подобрать и показать
-                            // понравилось не понравилось
-                                // да
-                //              // показать подробнее
-                switch ($rqVkCode) {
-                    case 1: {
-                    }
-                    case 2: {
-                    }
-                    case 3: {
-                    }
-                }
-            }
-            case 2: {
-                //нет не беспокойить день
-            }
-            case 3: {
-                // не беспокоить месяя
-            }
+            dump($rsPost,$vk->getAddedAccessToken(),$this->getParameter('group_access_token'));
         }
-        return $this->json([
+
+        return new Response('ok');
+        /*return $this->json([
             'message' => 'Welcome to your new controller!',
             'path' => 'src/Controller/HookVkController.php',
-        ]);
+        ]);*/
     }
 }

@@ -36,7 +36,7 @@ class StillPostsCommand extends Command
 //        if (strval($post['from_id'])[0]  === '-' ){
 //            return 'groupPoster';
 //        }
-        if ( ($post['date'] + (60 * 60 * 24)) < time()) {
+        if ( ($post['date'] + (60 * 60 * 2.3)) < time()) {
             return 'old_date';
         }
         if (empty($post['text'])) {
