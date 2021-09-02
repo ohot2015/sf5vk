@@ -34,13 +34,13 @@ class StillPostsCommand extends Command
     private function filterPost(array $post):bool
     {
         if (strval($post['from_id'])[0]  === '-' ){
-            return false;
+            return 'groupPoster';
         }
         if ( ($post['date'] + (60 * 60 * 24)) < time()) {
-            return false;
+            return 'old_date';
         }
         if (empty($post['text'])) {
-            return false;
+            return 'empty_text';
         }
 
         $signatures = [
@@ -94,10 +94,10 @@ class StillPostsCommand extends Command
 
         foreach ($signatures as $s) {
             if (strpos(strtolower($post['text']), $s) !== false) {
-                return false;
+                return $s;
             }
         }
-        return true;
+        return false;
     }
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
@@ -141,10 +141,22 @@ class StillPostsCommand extends Command
                 if (!empty($posted)) {
                     continue;
                 }
-                if (!$this->filterPost($post)) {
+
+                if (in_array($post['from_id'], $publicUsers)) {
                     continue;
                 }
-                if (in_array($post['from_id'], $publicUsers)) {
+                if ($signature = $this->filterPost($post)) {
+                    $stillPosts = new StillPosts();
+                    $stillPosts->setBotId($users[0]['u_id']);
+                    $stillPosts->setDate($post['date']);
+                    $stillPosts->setGroupId($group);
+                    $stillPosts->setPostId($post['id']);
+                    $stillPosts->setText($post['text']);
+                    $stillPosts->setUserId($post['from_id']);
+                    $stillPosts->setError(9999);
+                    $stillPosts->setErrorTxt($signature);
+                    $this->em->persist($stillPosts);
+
                     continue;
                 }
                 $publicUsers[] = $post['from_id'];
@@ -154,6 +166,7 @@ class StillPostsCommand extends Command
                         $profileUser = $profile;
                     }
                 }
+
                 if (empty($profileUser)) {
                     continue;
                 }
