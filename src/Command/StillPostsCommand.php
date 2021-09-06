@@ -33,9 +33,9 @@ class StillPostsCommand extends Command
     }
     private function filterPost(array $post)
     {
-//        if (strval($post['from_id'])[0]  === '-' ){
-//            return 'groupPoster';
-//        }
+        if (strval($post['from_id'])[0]  === '-' ){
+            return 'groupPoster';
+        }
         if ( ($post['date'] + (60 * 60 * 2.3)) < time()) {
             return 'old_date';
         }
@@ -77,6 +77,7 @@ class StillPostsCommand extends Command
             "содерж",
             "сообщество",
             '$',
+            '₽',
             'МП',
             'бабки',
             'билет',
