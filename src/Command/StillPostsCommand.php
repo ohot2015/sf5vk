@@ -42,6 +42,9 @@ class StillPostsCommand extends Command
         if (empty($post['text'])) {
             return 'empty_text';
         }
+        if (strlen($post['text']) < 7) {
+            return 'small_len_text';
+        }
 
         $signatures = [
             "http",
