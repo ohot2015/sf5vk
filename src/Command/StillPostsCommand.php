@@ -130,7 +130,7 @@ class StillPostsCommand extends Command
         $charsArr = str_split($chars);
         foreach ($charsArr as $char) {
             if (strpos($post['text'], $char) !== false) {
-                return $char;
+                return 'char';
             }
         }
 
