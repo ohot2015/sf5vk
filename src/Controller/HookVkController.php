@@ -15,22 +15,25 @@ class HookVkController extends AbstractController
      */
     public function index(Request $request, VK $vk)//: Response
     {
-        return new Response('ok');
+      //  return new Response('ok');
         $data = json_decode($request->getContent(), true);
-        dump($data, time());
+        dump('data', $data);
         $vk->setApiVersion(5.131);
         $VK_GROUP_MY = $this->getParameter('myGroups');
         $vk->setAccessToken($this->getParameter('group_access_token'));
 
         switch ($data['type']) {
             case 'confirmation':
-                return new Response('3c23c6a9');
+                return new Response('d26cdef1');
             case 'message_new':
                 $message = $data['object']['message'];
                 if (empty($message['payload'])){
+                    dump('break');
                     break;
                 }
+                dump('message_new');
                 $payload = json_decode($message['payload'], true);
+                $payload = empty($payload) ? []: $payload;
                 if (!empty($payload['command']) && $payload['command'] === 'start' ) {
 
                     $rsPost = $vk->api('messages.send', [
@@ -63,6 +66,7 @@ class HookVkController extends AbstractController
                             }',
                         'random_id' => rand(0, 99999)
                     ], 'array', 'POST');
+                    dump('commnad_start', $rsPost);
                 }
                 elseif (intval($payload['button']) === 1 && !empty($payload['button'])) {
                     //wallpost
@@ -72,6 +76,7 @@ class HookVkController extends AbstractController
                         'access_token' => $vk->getAddedAccessToken(),
                         'random_id' => rand(0, 99999)
                     ], 'array', 'POST');
+                    dump('button1', $rsPost);
                 }
                 elseif (intval($payload['button']) == 2) {
                     $rsPost = $vk->api('messages.send', [
@@ -80,6 +85,7 @@ class HookVkController extends AbstractController
                         'access_token' => $vk->getAddedAccessToken(),
                         'random_id' => rand(0, 99999)
                     ], 'array', 'POST');
+                    dump('button2', $rsPost);
                 }
                 else {
                     $rsPost = $vk->api('messages.send', [
@@ -111,6 +117,7 @@ class HookVkController extends AbstractController
                             }',
                         'random_id' => rand(0, 99999)
                     ], 'array', 'POST');
+                    dump('else', $rsPost);
                 }
 
         }
