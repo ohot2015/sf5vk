@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Controller;
-
+use App\Service\SpamFilter;
 use App\Service\VK;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -10,205 +10,54 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class HookVkController extends AbstractController
 {
+
     /**
      * @Route("/", name="hook_vk")
      */
-    public function index(Request $request, VK $vk)//: Response
+    public function index(Request $request, VK $vk, SpamFilter $spamFilter)//: Response
     {
       //  return new Response('ok');
         $data = json_decode($request->getContent(), true);
-        dump('data', $data);
+
         $vk->setApiVersion(5.131);
         $VK_GROUP_MY = $this->getParameter('myGroups');
         $vk->setAccessToken($this->getParameter('group_access_token'));
-
+        if (empty($data['type'])) {
+            dump('no data');
+            return new Response('ok');
+        }
         switch ($data['type']) {
             case 'confirmation':
                 return new Response('d26cdef1');
             case 'message_new':
                 $message = $data['object']['message'];
-                if (empty($message['payload'])){
+                dump($message['text']);
+                if (empty($message['text'])){
                     dump('break');
                     break;
                 }
-                dump('message_new');
-                $payload = json_decode($message['payload'], true);
-                $payload = empty($payload) ? []: $payload;
-                if (!empty($payload['command']) && $payload['command'] === 'start' ) {
 
-                    $rsPost = $vk->api('messages.send', [
-                        'user_id' => $message['from_id'],
-                        'message' => 'Привет ты можешь опубликовать свое объявление на стене, 
-                        или заполнить анкету, для знакомства с другими пользователями ',
-                        'access_token' => $vk->getAddedAccessToken(),
-                        'keyboard' => '{
-                              "one_time": true,
-                              "buttons": [
-                                [
-                                  {
-                                    "action": {
-                                      "label": "Опубликовать объявление",
-                                      "type": "text",
-                                      "payload": "{\"button\": \"1\"}"
-                                    }
-                                  }
-                                ],
-                                [
-                                  {
-                                    "action": {
-                                      "label": "Создать анкету",
-                                      "type": "text",
-                                      "payload": "{\"button\": \"2\"}"
-                                    }
-                                  }
-                                ]    
-                              ]
-                            }',
-                        'random_id' => rand(0, 99999)
-                    ], 'array', 'POST');
-                    dump('commnad_start', $rsPost);
+                if ($spamFilter->filterText($message['text'])){
+                    dump('filtert spam detected');
+                    return new Response('ok');
                 }
-                elseif (intval($payload['button']) === 1 && !empty($payload['button'])) {
-                    //wallpost
-                    $rsPost = $vk->api('messages.send', [
-                        'user_id' => $message['from_id'],
-                        'message' => 'Напиши объявление и нажми отправить ',
-                        'access_token' => $vk->getAddedAccessToken(),
-                        'random_id' => rand(0, 99999)
-                    ], 'array', 'POST');
-                    dump('button1', $rsPost);
-                }
-                elseif (intval($payload['button']) == 2) {
-                    $rsPost = $vk->api('messages.send', [
-                        'user_id' => $message['from_id'],
-                        'message' => 'Сколько вам лет?',
-                        'access_token' => $vk->getAddedAccessToken(),
-                        'random_id' => rand(0, 99999)
-                    ], 'array', 'POST');
-                    dump('button2', $rsPost);
-                }
-                else {
-                    $rsPost = $vk->api('messages.send', [
-                        'user_id' => $message['from_id'],
-                        'message' => 'Привет что ты хочешь ?',
-                        'access_token' => $vk->getAddedAccessToken(),
-                        'keyboard' => '{
-                              "one_time": true,
-                              "buttons": [
-                                [
-                                  {
-                                    "action": {
-                                      "label": "Опубликовать объявление",
-                                      "type": "text",
-                                      "payload": "{\"button\": \"1\"}"
-                                    }
-                                  }
-                                ],
-                                [
-                                  {
-                                    "action": {
-                                      "label": "Создать анкету",
-                                      "type": "text",
-                                      "payload": "{\"button\": \"2\"}"
-                                    }
-                                  }
-                                ]    
-                              ]
-                            }',
-                        'random_id' => rand(0, 99999)
-                    ], 'array', 'POST');
-                    dump('else', $rsPost);
-                }
+                dump( $message['text'] .'  '. PHP_EOL . PHP_EOL . 'от пользователя: '. PHP_EOL . '@id'.$message['from_id']);
 
+                $rsPost = $vk->api('wall.post', [
+                    'owner_id' => $VK_GROUP_MY,
+                    'from_group' => 1,
+                    'message'=> $message['text'] .'  '. PHP_EOL . PHP_EOL . 'от пользователя: '. PHP_EOL . '@id'.$message['from_id'],
+                    'publish_date' => time() + (60 * 30 ),
+                    'access_token' => $vk->getAddedAccessToken(),
+                    'count' => 10,
+                ], 'array', 'POST');
+
+                dump($rsPost);
+                break;
         }
 
-        // return new Response('ok');
-
-
-//        if ($data['type'] ==='message_new') {
-//            $user = $data['object']['message']['from_id'];
-//            $text = $data['object']['message']['text'];
-//            $rsPost = $vk->api('messages.send', [
-//                'user_id' => $user,
-//                //'peer_id' =>$user,
-//                'message'=> $text,
-//                'access_token' => $vk->getAddedAccessToken(),
-//                'keyboard' => '{
-//  "one_time": true,
-//  "buttons": [
-//    [
-//      {
-//        "action": {
-//          "type": "location",
-//          "payload": "{\"button\": \"1\"}"
-//        }
-//      }
-//    ],
-//    [
-//      {
-//        "action": {
-//          "type": "open_app",
-//          "app_id": 6232540,
-//          "owner_id": -157525928,
-//          "hash": "123",
-//          "label": "LiveWidget"
-//        }
-//      }
-//    ],
-//    [
-//      {
-//        "action": {
-//          "type": "vkpay",
-//          "hash": "action=transfer-to-group&group_id=181108510&aid=10"
-//        }
-//      }
-//    ],
-//    [
-//      {
-//        "action": {
-//          "type": "text",
-//          "payload": "{\"button\": \"1\"}",
-//          "label": "Red"
-//        },
-//        "color": "negative"
-//      },
-//      {
-//        "action": {
-//          "type": "text",
-//          "payload": "{\"button\": \"2\"}",
-//          "label": "Green"
-//        },
-//        "color": "positive"
-//      },
-//      {
-//        "action": {
-//          "type": "text",
-//          "payload": "{\"button\": \"2\"}",
-//          "label": "Blue"
-//        },
-//        "color": "primary"
-//      },
-//      {
-//        "action": {
-//          "type": "text",
-//          "payload": "{\"button\": \"2\"}",
-//          "label": "White"
-//        },
-//        "color": "secondary"
-//      }
-//    ]
-//  ]
-//}',
-//                'random_id' => rand(0,99999)
-//            ], 'array', 'POST');
-//
-//            dump($rsPost,$data);
-//        }
-
         return new Response('ok');
-        /*return $this->json([
-            'message' => 'Welcome to your new controller!',
-            'path' => 'src/Controller/HookVkController.php',
-        ]);*/
+
     }
+
 }
