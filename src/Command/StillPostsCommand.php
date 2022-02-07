@@ -3,6 +3,7 @@
 namespace App\Command;
 use App\Entity\InvatedUsers;
 use App\Entity\StillPosts;
+use App\Service\SpamFilter;
 use App\Service\VK;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
@@ -19,9 +20,11 @@ class StillPostsCommand extends Command
     protected static $defaultName = 'stillPosts';
     protected static $defaultDescription = 'Add a short description for your command';
     private $em;
-    public function __construct(EntityManagerInterface $em)
+    private $spamFilter;
+    public function __construct(EntityManagerInterface $em, SpamFilter $spamFilter)
     {
         parent::__construct();
+        $this->spamFilter = $spamFilter;
         $this->em = $em;
     }
     protected function configure(): void
@@ -77,7 +80,7 @@ class StillPostsCommand extends Command
                 if (in_array($post['from_id'], $publicUsers)) {
                     continue;
                 }
-                $signature = $this->filterPost($post);
+                $signature = $this->spamFilter->filterPost($post);
 
                 if ($signature !== false) {
                     $stillPosts = new StillPosts();
