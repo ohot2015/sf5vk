@@ -42,13 +42,13 @@ class HookVkController extends AbstractController
                     return new Response('ok');
                 }
                 dump( $message['text'] .'  '. PHP_EOL . PHP_EOL . 'от пользователя: '. PHP_EOL . '@id'.$message['from_id']);
-
+                dump($this->getParameter('app_token'));
                 $rsPost = $vk->api('wall.post', [
                     'owner_id' => $VK_GROUP_MY,
                     'from_group' => 1,
                     'message'=> $message['text'] .'  '. PHP_EOL . PHP_EOL . 'от пользователя: '. PHP_EOL . '@id'.$message['from_id'],
-                    'publish_date' => time() + (60 * 30 ),
-                    'access_token' => $vk->getAddedAccessToken(),
+                    //'publish_date' => time() + (60 * 30 ),
+                    'access_token' => $this->getParameter('app_token'),
                     'count' => 10,
                 ], 'array', 'POST');
 
