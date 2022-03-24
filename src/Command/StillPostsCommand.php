@@ -68,6 +68,7 @@ class StillPostsCommand extends Command
                 'extended' =>1,
                 'fields'=> 'name'
             ], 'array', 'POST');
+
             if (empty($rsWall['response'])) {
                 continue;
             }
