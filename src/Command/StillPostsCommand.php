@@ -82,6 +82,22 @@ class StillPostsCommand extends Command
                     continue;
                 }
                 $signature = $this->spamFilter->filterPost($post);
+                $rsUser = $vk->api('users.get', [
+                    'user_ids' => $post['from_id'],
+                    'access_token' => $vk->getAddedAccessToken(),
+                    'count'=> 1000,
+                    'fields' => 'online,blacklisted_by_me,bdate',
+                    'v' => '5.131'
+                ], 'array', 'POST');
+
+
+                if (!empty($rsUser['response'][0]['deactivated'])) {
+                    $signature = 'deactivated ' . $signature;
+                }
+                if (!empty($rsUser['response'][0]['blacklisted_by_me'])) {
+                    $signature = 'blacklisted_by_me ' . $signature;
+                }
+
 
                 if ($signature !== false) {
                     $stillPosts = new StillPosts();
@@ -108,6 +124,7 @@ class StillPostsCommand extends Command
                 if (empty($profileUser)) {
                     continue;
                 }
+
 
                 $iter++;
                 $rsPost = $vk->api('wall.post', [
