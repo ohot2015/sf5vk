@@ -110,6 +110,7 @@ class StillPostsCommand extends Command
                     $stillPosts->setError(9999);
                     $stillPosts->setErrorTxt($signature);
                     $this->em->persist($stillPosts);
+
                     continue;
                 }
 
@@ -126,7 +127,6 @@ class StillPostsCommand extends Command
                 }
 
 
-                $iter++;
                 $rsPost = $vk->api('wall.post', [
                     'owner_id' => $VK_GROUP_MY,
                     'from_group' => 1,
@@ -145,7 +145,7 @@ class StillPostsCommand extends Command
                     'access_token' => $vk->getAddedAccessToken(),
                     'count' => 10,
                 ], 'array', 'POST');
-
+                $iter++;
                 $stillPosts = new StillPosts();
                 $stillPosts->setBotId($users[0]['u_id']);
                 $stillPosts->setDate($post['date']);
