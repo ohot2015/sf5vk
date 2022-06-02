@@ -11,6 +11,7 @@ parameters:
     groupsStillPosts: '%env(resolve:groupsStillPosts)%'
     myGroups: '%env(resolve:myGroups)%'
     mypage: '%env(resolve:mypage)%'
+    GOOGLE_APPLICATION_CREDENTIALS: '%env(resolve:GOOGLE_APPLICATION_CREDENTIALS)%'
 
 services:
     # default configuration for services in *this* file
