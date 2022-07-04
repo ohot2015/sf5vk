@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Command;
+
 use App\Entity\InvatedUsers;
 use App\Service\VK;
 use Doctrine\ORM\EntityManager;
@@ -17,12 +18,12 @@ class ClearTrashMyGroupCommand extends Command
 {
     protected static $defaultName = 'clearTrashMyGroup';
     protected static $defaultDescription = 'Add a short description for your command';
+
     protected function configure(): void
     {
         $this
             ->addArgument('arg1', InputArgument::OPTIONAL, 'Argument description')
-            ->addOption('option1', null, InputOption::VALUE_NONE, 'Option description')
-        ;
+            ->addOption('option1', null, InputOption::VALUE_NONE, 'Option description');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -46,42 +47,50 @@ class ClearTrashMyGroupCommand extends Command
         ];
 
         $rsGetGroups = $vk->api('groups.getMembers', [
-            'group_id' => substr($myGroup,1),
+            'group_id' => substr($myGroup, 1),
             'access_token' => $vk->getAddedAccessToken(),
-            'count'=> 1000,
+            'fields' => 'bdate',
+            'count' => 1000,
         ], 'array', 'POST');
 
-        $ids = $rsGetGroups['response']['items'];
-
-        $rs = $vk->api('users.get', [
-            'user_ids' => substr(implode(',',$ids),0,-1),
+        $rs = $vk->api('account.getBanned', [
             'access_token' => $vk->getAddedAccessToken(),
-            'count'=> 1000,
-            'fields' => 'online,blacklisted_by_me,bdate',
+            'count' => 200,
             'v' => '5.131'
         ], 'array', 'POST');
 
-        shuffle($rs['response']);
         $prepare_delete_users_ids = [];
-        foreach ($rs['response'] as $user) {
-            if (!empty($user['deactivated'])) {
-                array_push($prepare_delete_users_ids, $user['id']);
+        $bdates = range(date("Y") - 17, date("Y"));
+        foreach ($rsGetGroups['response']['items'] as $user) {
+            foreach ($rs['response']['profiles'] as $banned) {
+                if ($user['id'] === $banned['id']) {
+                    array_push($prepare_delete_users_ids, ['black list', $banned['id']]);
+                }
             }
-            if (!empty($user['blacklisted_by_me'])) {
-                array_push($prepare_delete_users_ids, $user['id']);
+            if (!empty($user['deactivated'])) {
+                array_push($prepare_delete_users_ids, ['dogs', $user['id']]);
+            }
+            if (!empty($user['bdate'])) {
+                foreach ($bdates as $bd) {
+                    if (strpos($user['bdate'], strval($bd)) !== false) {
+                        array_push($prepare_delete_users_ids, ['pezduk', $user['id']]);
+                        break;
+                    }
+                }
             }
         }
-
+        $message = '';
         foreach ($prepare_delete_users_ids as $user) {
             $vk->api('groups.removeUser', [
-                'group_id' => substr($myGroup,1),
-                'user_id' => $user,
+                'group_id' => substr($myGroup, 1),
+                'user_id' => $user[1],
                 'access_token' => $vk->getAddedAccessToken(),
                 'v' => '5.131'
             ], 'array', 'POST');
-            sleep(rand(3,5));
+            $message .= implode('-', $user) . chr(13) . PHP_EOL;
+            sleep(rand(3, 5));
         }
-        $io->success('delete users '. implode(', ',$prepare_delete_users_ids));
+        $io->success($message);
 
         return Command::SUCCESS;
     }
