@@ -64,7 +64,7 @@ class StillPostsCommand extends Command
             $rsWall = $vk->api('wall.get', [
                 'owner_id' => $group,
                 'access_token' => $vk->getAddedAccessToken(),
-                'count' => 10,
+                'count' => 50,
                 'extended' =>1,
                 'fields'=> 'name'
             ], 'array', 'POST');
@@ -72,6 +72,7 @@ class StillPostsCommand extends Command
             if (empty($rsWall['response'])) {
                 continue;
             }
+
             foreach($rsWall['response']['items'] as $post) {
                 $posted = $repo->findBy(['groupId'=> $group, 'postId' => $post['id']]);
                 if (!empty($posted)) {
@@ -82,6 +83,7 @@ class StillPostsCommand extends Command
                     continue;
                 }
                 $signature = $this->spamFilter->filterPost($post);
+
                 $rsUser = $vk->api('users.get', [
                     'user_ids' => $post['from_id'],
                     'access_token' => $vk->getAddedAccessToken(),
@@ -110,7 +112,7 @@ class StillPostsCommand extends Command
                     $stillPosts->setError(9999);
                     $stillPosts->setErrorTxt($signature);
                     $this->em->persist($stillPosts);
-
+                    sleep(0.4);
                     continue;
                 }
 
@@ -123,9 +125,9 @@ class StillPostsCommand extends Command
                 }
 
                 if (empty($profileUser)) {
+                    sleep(0.4);
                     continue;
                 }
-
 
                 $rsPost = $vk->api('wall.post', [
                     'owner_id' => $VK_GROUP_MY,
@@ -140,11 +142,13 @@ class StillPostsCommand extends Command
                         $profileUser['last_name']
                     ),
                 //    'message'=> $post['text'] .'  '. PHP_EOL . PHP_EOL . 'от пользователя: '. PHP_EOL . '@id'.$post['from_id'],
-                    'publish_date' => time() + (60 * 30 * $iter),
+                    'publish_date' => time() + (60 * 30 * ($iter + 1)),
                     'copyright' => '@vk.com/club' . $group,
                     'access_token' => $vk->getAddedAccessToken(),
                     'count' => 10,
+                    'v' => '5.131'
                 ], 'array', 'POST');
+
                 $iter++;
                 $stillPosts = new StillPosts();
                 $stillPosts->setBotId($users[0]['u_id']);
@@ -163,7 +167,8 @@ class StillPostsCommand extends Command
             }
         }
         $this->em->flush();
-        $io->success('success'. $iter);
+        $time = new \DateTime();
+        $io->success('success'. $iter . ' '. $time->format('Y-m-d H:i:s'));
 
         return Command::SUCCESS;
     }

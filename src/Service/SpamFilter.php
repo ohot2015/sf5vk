@@ -108,13 +108,12 @@ class SpamFilter
         if (strval($post['from_id'])[0]  === '-' ){
             return 'groupPoster';
         }
-        if ( ($post['date'] + (60 * 60 * 2.3)) < time()) {
+        if ( ($post['date'] + (60 * 60 * 24)) < time()) {
             return 'old_date';
         }
 
         return $this->filterText($post['text']);
     }
-
 }
 
 
